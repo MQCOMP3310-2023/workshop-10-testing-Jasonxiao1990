@@ -40,14 +40,17 @@ def signup_post():
     name = request.form.get('name')
     password = request.form.get('password')
 
-    user = db.session.execute(text('select * from user where email = "' + email +'"')).all()
+    # user = db.session.execute(text('select * from user where email = "' + email +'"')).all()
+    user = User.query.filter_by(email=email).all()
     if len(user) > 0: # if a user is found, we want to redirect back to signup page so user can try again
         flash('Email address already exists')  # 'flash' function stores a message accessible in the template code.
         current_app.logger.debug("User email already exists")
         return redirect(url_for('auth.signup'))
 
-    # create a new user with the form data. TODO: Hash the password so the plaintext version isn't saved.
-    new_user = User(email=email, name=name, password=password)
+    # a new user with the form data. TODO: Hash the password so the plaintext version isn't saved.
+    # new_user = User(email=email, name=name, password=password)
+    new_user = User(email=email, name=name, 
+                   password=generate_password_hash(password, method='sha256'))
 
     # add the new user to the database
     db.session.add(new_user)
@@ -58,7 +61,7 @@ def signup_post():
 @auth.route('/logout')
 @login_required
 def logout():
-    logout_user();
+    logout_user()
     return redirect(url_for('main.index'))
 
 # See https://www.digitalocean.com/community/tutorials/how-to-add-authentication-to-your-app-with-flask-login for more information
